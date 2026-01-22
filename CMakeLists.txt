@@ -5,7 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(SFML_DIR "C:/SFML-3.0.2")
 include_directories(${SFML_DIR}/include)
 link_directories(${SFML_DIR}/lib)
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+set(SOURCES
+    "src/main.cpp"
+    "src/Entities/Boy.cpp"
+    "src/World/Map.cpp"
+)
 add_executable(RetroBoy ${SOURCES})
 target_link_libraries(RetroBoy
     sfml-graphics
