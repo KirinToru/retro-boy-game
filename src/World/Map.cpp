@@ -61,8 +61,9 @@ bool Map::loadFromFile(const std::string &filename) {
             if (spawnCount > 0) {
               std::cerr << "Warning: Multiple spawn points found!" << std::endl;
             }
-            startPosition = {static_cast<float>(row.size()) * TILE_SIZE,
-                             static_cast<float>(y) * TILE_SIZE};
+            startPosition = {
+                static_cast<float>(row.size()) * TILE_SIZE + TILE_SIZE / 2.f,
+                static_cast<float>(y) * TILE_SIZE + TILE_SIZE / 2.f};
             spawnCount++;
           } else if (tileID == 1) {
             if (hasFinish) {

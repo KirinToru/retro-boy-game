@@ -26,7 +26,6 @@ private:
   bool isGrounded;       // Is player on the ground
 
   // Player movement parameters
-  // Player movement parameters
   float moveSpeed;    // Max speed
   float acceleration; // Horizontal acceleration
   float friction;     // Horizontal friction
@@ -38,6 +37,15 @@ private:
   sf::Vector2f wallJumpForce;
   bool isWallSliding;
   int wallDir; // -1 left, 1 right, 0 none
+
+  sf::Texture texture;
+  sf::Sprite sprite;
+  bool facingRight;
+
+  // Animation
+  int currentFrame;
+  float animationTimer;
+  float animationSpeed; // seconds per frame
 
   bool wasJumpPressed;
 };

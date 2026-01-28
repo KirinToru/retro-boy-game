@@ -1,12 +1,33 @@
 ﻿#include "Player.hpp"
 
-Player::Player() {
-  // Player appearance
-  shape.setSize({24.f, 24.f});
-  shape.setFillColor(sf::Color(32, 2, 84));
-  shape.setPosition({100.f, 0.f}); // Start position
-  shape.setOutlineColor(sf::Color::White);
+#include <iostream>
+
+Player::Player() : sprite(texture) {
+  // Load Texture (idle.png is 64x32, 2 frames of 32x32)
+  if (!texture.loadFromFile("assets/player/idle.png")) {
+    std::cerr << "Failed to load player texture!" << std::endl;
+  }
+  sprite.setTexture(texture, true);
+
+  // Set initial texture rect (first frame)
+  sprite.setTextureRect(sf::IntRect({0, 0}, {32, 32}));
+
+  // Set origin to bottom-center for proper positioning relative to hitbox
+  sprite.setOrigin({16.f, 32.f});
+
+  facingRight = true;
+
+  // Animation setup
+  currentFrame = 0;
+  animationTimer = 0.f;
+  animationSpeed = 0.5f; // Switch frame every 0.5 seconds
+
+  // Hitbox at feet
+  shape.setSize({24.f, 32.f});
+  shape.setFillColor(sf::Color(0, 0, 0, 0));
   shape.setOutlineThickness(1.f);
+  shape.setOutlineColor(sf::Color::Green);
+  shape.setPosition({100.f, 0.f}); // Start position
 
   // Physics parameters
   moveSpeed = 300.f;
@@ -111,12 +132,17 @@ void Player::update(float dt, const Map &map) {
   // Update previous state for next frame
   wasJumpPressed = jumpPressed;
 
-  // 4. Variable Gravity (Dynamic Acceleration)
+  // 4. Variable Gravity (Dynamic Acceleration) with Gravity Halt at Peak
   float currentGravity = gravity;
 
-  // Variable gravity relies on holding the button, so we check jumpPressed
-  // directly
-  if (velocity.y < 0.f && !jumpPressed) {
+  // Gravity Halt: near the peak of the jump (velocity close to 0), reduce
+  // gravity
+  const float peakThreshold = 50.f; // velocity range considered "peak"
+  if (std::abs(velocity.y) < peakThreshold && !isGrounded && !isWallSliding) {
+    currentGravity *= 0.7f; // Reduced gravity at peak for floaty feel
+  }
+  // Variable gravity relies on holding the button
+  else if (velocity.y < 0.f && !jumpPressed) {
     // Rising but button released: heavier gravity (shorter jump)
     currentGravity *= 2.0f;
   } else if (velocity.y > 0.f) {
@@ -205,16 +231,76 @@ void Player::update(float dt, const Map &map) {
       velocity.y = 0.f;
       isGrounded = true;
     } else if (velocity.y < 0) { // Jumping up
-      shape.setPosition({shape.getPosition().x, wall.position.y + wall.size.y});
-      velocity.y = 0.f;
+      // Upwards Corner Correction: Try to wiggle player horizontally
+      const float cornerMargin = 6.f; // Pixels to check for nudge
+      sf::FloatRect playerBounds = shape.getGlobalBounds();
+
+      // Check if we can nudge left
+      sf::FloatRect nudgeLeft = playerBounds;
+      nudgeLeft.position.x -= cornerMargin;
+      if (map.checkCollision(nudgeLeft).empty()) {
+        shape.move({-cornerMargin, 0.f});
+      } else {
+        // Check if we can nudge right
+        sf::FloatRect nudgeRight = playerBounds;
+        nudgeRight.position.x += cornerMargin;
+        if (map.checkCollision(nudgeRight).empty()) {
+          shape.move({cornerMargin, 0.f});
+        } else {
+          // Can't nudge, stop upward movement
+          shape.setPosition(
+              {shape.getPosition().x, wall.position.y + wall.size.y});
+          velocity.y = 0.f;
+        }
+      }
     }
+  }
+
+  // Idle Animation Update (only when grounded and not moving)
+  if (isGrounded && std::abs(velocity.x) < 10.f) {
+    animationTimer += dt;
+    if (animationTimer >= animationSpeed) {
+      animationTimer = 0.f;
+      currentFrame = (currentFrame + 1) % 2; // 2 frames
+      sprite.setTextureRect(sf::IntRect({currentFrame * 32, 0}, {32, 32}));
+    }
+  } else {
+    // Reset to first frame when moving/in air
+    currentFrame = 0;
+    animationTimer = 0.f;
+    sprite.setTextureRect(sf::IntRect({0, 0}, {32, 32}));
+  }
+
+  // Visual Update
+  // Position sprite at bottom-center of hitbox (origin is bottom-center)
+  sf::Vector2f bottomCenter = {shape.getPosition().x + shape.getSize().x / 2.f,
+                               shape.getPosition().y + shape.getSize().y};
+  sprite.setPosition(bottomCenter);
+
+  // Flip Logic
+  if (velocity.x > 1.f) {
+    facingRight = true;
+  } else if (velocity.x < -1.f) {
+    facingRight = false;
+  }
+
+  if (facingRight) {
+    sprite.setScale({1.5f, 1.5f});
+  } else {
+    sprite.setScale({-1.5f, 1.5f});
   }
 }
 
-void Player::render(sf::RenderWindow &window) { window.draw(shape); }
+void Player::render(sf::RenderWindow &window) {
+  window.draw(sprite);
+  // uncomment to visualize hitbox
+  // window.draw(shape);
+}
 
 void Player::reset(sf::Vector2f position) {
-  shape.setPosition(position);
+  // Center the hitbox on the provided position (which is center of tile)
+  shape.setPosition({position.x - shape.getSize().x / 2.f,
+                     position.y - shape.getSize().y / 2.f});
   velocity = {0.f, 0.f};
   isGrounded = false;
 }
