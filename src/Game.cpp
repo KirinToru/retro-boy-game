@@ -23,6 +23,10 @@ Game::Game()
   mFPSFontLoaded = mFPSFont.openFromFile("assets/fonts/font.ttf");
 
   loadLevel("assets/maps/tutorial.tmx");
+
+  // Cap framerate at 60 FPS (use both methods for reliability)
+  mWindow.setFramerateLimit(60);
+  mWindow.setVerticalSyncEnabled(true);
 }
 
 void Game::run() {
@@ -182,10 +186,10 @@ void Game::render() {
     mWindow.setView(mWindow.getDefaultView());
     sf::Text fpsText(mFPSFont);
     fpsText.setString(std::to_string(mCurrentFPS));
-    fpsText.setCharacterSize(24);
-    fpsText.setFillColor(sf::Color::Yellow);
+    fpsText.setCharacterSize(16);
+    fpsText.setFillColor(sf::Color::Green);
     fpsText.setOutlineColor(sf::Color::Black);
-    fpsText.setOutlineThickness(2.f);
+    fpsText.setOutlineThickness(1.f);
     // Position at top-right
     float textWidth = fpsText.getLocalBounds().size.x;
     fpsText.setPosition({mWindow.getSize().x - textWidth - 10.f, 10.f});
@@ -200,7 +204,6 @@ void Game::loadLevel(const std::string &filename) {
   if (mMap.loadFromFile(filename)) {
     mPlayer.reset(mMap.getStartPosition());
 
-    // Snap camera to player position immediately (no fly-in effect)
     sf::Vector2f playerPos = mPlayer.getPosition();
     sf::Vector2f viewSize = mCamera.getSize();
     float mapW = mMap.getWidth();
@@ -245,4 +248,8 @@ void Game::cycleWindowMode() {
   // Restore camera size based on new window size
   sf::Vector2u winSize = mWindow.getSize();
   mCamera.setSize({winSize.x / 2.f, winSize.y / 2.f});
+
+  // Restore FPS limit
+  mWindow.setFramerateLimit(60);
+  mWindow.setVerticalSyncEnabled(true);
 }

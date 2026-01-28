@@ -30,11 +30,10 @@ public:
   // Returns the player spawn position extracted from the map file
   sf::Vector2f getStartPosition() const { return startPosition; }
 
-  // Renders the map tiles and text to the window
+  // Renders only the visible portion of the map (view culling)
   void render(sf::RenderWindow &window);
 
   // Checks for collisions between an entity's bounding box and the map walls.
-  // Returns a vector of bounding boxes of the tiles that intersect.
   std::vector<sf::FloatRect> checkCollision(const sf::FloatRect &bounds) const;
 
   // Checks if the player bounds intersect with the finish tile
@@ -51,21 +50,25 @@ private:
   // Parse object group for text objects
   void parseObjectGroup(const std::string &content);
 
+  // Prepare cached text objects for rendering (called after parsing)
+  void prepareTextObjects();
+
   // Main grid for collision detection (from "main" layer)
-  // IDs: 0=empty, 1=spawn, 2=finish, 3=wall, 4=text marker
   std::vector<std::vector<int>> mainGrid;
 
   // Texture grid for rendering (from "textures" layer)
-  // IDs: 0=empty, 5=spawn, 6=finish, 7=wall
   std::vector<std::vector<int>> textureGrid;
 
-  // Text objects from object layer
+  // Text objects from object layer (raw data)
   std::vector<MapText> textObjects;
 
-  sf::Vector2f startPosition{100.f, 100.f}; // Default if not found
-  std::vector<sf::FloatRect> finishAreas;   // Multiple finish zones allowed
+  // Cached sf::Text objects for rendering (avoid allocation in render loop)
+  std::vector<sf::Text> cachedTexts;
 
-  // Helper to setup shapes for rendering
+  sf::Vector2f startPosition{100.f, 100.f};
+  std::vector<sf::FloatRect> finishAreas;
+
+  // Reusable tile shape (avoid creating new shapes)
   sf::RectangleShape tileShape;
 
   // Textures for tiles

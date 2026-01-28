@@ -153,6 +153,9 @@ bool Map::parseTMX(const std::string &content) {
   // Parse object groups (for text)
   parseObjectGroup(content);
 
+  // Prepare cached text objects (optimization: avoid allocation in render loop)
+  prepareTextObjects();
+
   std::cout << "Loaded TMX map: " << mapWidth << "x" << mapHeight << " tiles"
             << std::endl;
   std::cout << "Text objects found: " << textObjects.size() << std::endl;
@@ -280,87 +283,126 @@ void Map::parseObjectGroup(const std::string &content) {
 }
 
 void Map::render(sf::RenderWindow &window) {
-  // Render texture layer (visual tiles)
-  for (size_t y = 0; y < textureGrid.size(); ++y) {
-    for (size_t x = 0; x < textureGrid[y].size(); ++x) {
-      int id = textureGrid[y][x];
-      tileShape.setPosition({x * TILE_SIZE, y * TILE_SIZE});
+  // Get the current view bounds for culling
+  sf::View view = window.getView();
+  sf::Vector2f viewCenter = view.getCenter();
+  sf::Vector2f viewSize = view.getSize();
 
-      // Texture layer IDs (after -1 adjustment):
-      // 3 = spawn texture, 4 = finish texture, 5 = wall texture
-      if (id == 5) { // Wall texture
-        tileShape.setTexture(&wallTexture);
-        tileShape.setFillColor(sf::Color::White);
-        window.draw(tileShape);
-      } else if (id == 4) { // Finish texture
-        tileShape.setTexture(&finishTexture);
-        tileShape.setFillColor(sf::Color::White);
-        window.draw(tileShape);
-      } else if (id == 3) { // Spawn texture
-        tileShape.setTexture(&spawnTexture);
+  // Calculate visible tile range (with 1 tile margin for safety)
+  int startX = std::max(
+      0, static_cast<int>((viewCenter.x - viewSize.x / 2.f) / TILE_SIZE) - 1);
+  int startY = std::max(
+      0, static_cast<int>((viewCenter.y - viewSize.y / 2.f) / TILE_SIZE) - 1);
+  int endX = std::min(
+      static_cast<int>(textureGrid.empty() ? 0 : textureGrid[0].size()),
+      static_cast<int>((viewCenter.x + viewSize.x / 2.f) / TILE_SIZE) + 2);
+  int endY = std::min(
+      static_cast<int>(textureGrid.size()),
+      static_cast<int>((viewCenter.y + viewSize.y / 2.f) / TILE_SIZE) + 2);
+
+  // Render only visible tiles (view culling optimization)
+  for (int y = startY; y < endY; ++y) {
+    for (int x = startX; x < endX; ++x) {
+      if (y >= 0 && y < static_cast<int>(textureGrid.size()) && x >= 0 &&
+          x < static_cast<int>(textureGrid[y].size())) {
+        int id = textureGrid[y][x];
+
+        // Skip empty tiles
+        if (id < 3 || id > 5)
+          continue;
+
+        tileShape.setPosition({static_cast<float>(x) * TILE_SIZE,
+                               static_cast<float>(y) * TILE_SIZE});
+
+        // Set texture based on tile type (switch is more efficient for multiple
+        // cases)
+        switch (id) {
+        case 5: // Wall texture
+          tileShape.setTexture(&wallTexture);
+          break;
+        case 4: // Finish texture
+          tileShape.setTexture(&finishTexture);
+          break;
+        case 3: // Spawn texture
+          tileShape.setTexture(&spawnTexture);
+          break;
+        default:
+          continue;
+        }
         tileShape.setFillColor(sf::Color::White);
         window.draw(tileShape);
       }
     }
   }
 
-  // Render text objects with word wrapping
-  if (fontLoaded) {
-    for (const auto &textObj : textObjects) {
-      sf::Text text(font);
-      text.setCharacterSize(12);
-      text.setFillColor(sf::Color::White);
-      text.setOutlineColor(sf::Color::Black);
-      text.setOutlineThickness(1.f);
+  // Render cached text objects (no allocation in render loop)
+  for (auto &text : cachedTexts) {
+    window.draw(text);
+  }
+}
 
-      // Manual word wrap based on object width from Tiled
-      std::string wrappedText;
-      std::string currentLine;
-      std::string word;
-      float maxWidth = textObj.size.x > 0 ? textObj.size.x : 100.f;
+// Prepare text objects once (called after map loading)
+void Map::prepareTextObjects() {
+  cachedTexts.clear();
 
-      for (size_t i = 0; i <= textObj.content.size(); ++i) {
-        char c = (i < textObj.content.size()) ? textObj.content[i] : ' ';
+  if (!fontLoaded)
+    return;
 
-        if (c == ' ' || c == '\n' || i == textObj.content.size()) {
-          // Test if adding this word exceeds width
-          std::string testLine =
-              currentLine.empty() ? word : currentLine + " " + word;
-          text.setString(testLine);
-          float lineWidth = text.getLocalBounds().size.x;
+  // Reserve space to avoid reallocations
+  cachedTexts.reserve(textObjects.size());
 
-          if (lineWidth > maxWidth && !currentLine.empty()) {
-            // Start new line
-            if (!wrappedText.empty())
-              wrappedText += "\n";
-            wrappedText += currentLine;
-            currentLine = word;
-          } else {
-            currentLine = testLine;
-          }
-          word.clear();
+  for (const auto &textObj : textObjects) {
+    sf::Text text(font);
+    text.setCharacterSize(12);
+    text.setFillColor(sf::Color::White);
+    text.setOutlineColor(sf::Color::Black);
+    text.setOutlineThickness(1.f);
 
-          if (c == '\n') {
-            if (!wrappedText.empty())
-              wrappedText += "\n";
-            wrappedText += currentLine;
-            currentLine.clear();
-          }
+    // Manual word wrap based on object width from Tiled
+    std::string wrappedText;
+    std::string currentLine;
+    std::string word;
+    float maxWidth = textObj.size.x > 0 ? textObj.size.x : 100.f;
+
+    for (size_t i = 0; i <= textObj.content.size(); ++i) {
+      char c = (i < textObj.content.size()) ? textObj.content[i] : ' ';
+
+      if (c == ' ' || c == '\n' || i == textObj.content.size()) {
+        std::string testLine =
+            currentLine.empty() ? word : currentLine + " " + word;
+        text.setString(testLine);
+        float lineWidth = text.getLocalBounds().size.x;
+
+        if (lineWidth > maxWidth && !currentLine.empty()) {
+          if (!wrappedText.empty())
+            wrappedText += "\n";
+          wrappedText += currentLine;
+          currentLine = word;
         } else {
-          word += c;
+          currentLine = testLine;
         }
-      }
-      // Add remaining line
-      if (!currentLine.empty()) {
-        if (!wrappedText.empty())
-          wrappedText += "\n";
-        wrappedText += currentLine;
-      }
+        word.clear();
 
-      text.setString(wrappedText);
-      text.setPosition(textObj.position);
-      window.draw(text);
+        if (c == '\n') {
+          if (!wrappedText.empty())
+            wrappedText += "\n";
+          wrappedText += currentLine;
+          currentLine.clear();
+        }
+      } else {
+        word += c;
+      }
     }
+
+    if (!currentLine.empty()) {
+      if (!wrappedText.empty())
+        wrappedText += "\n";
+      wrappedText += currentLine;
+    }
+
+    text.setString(wrappedText);
+    text.setPosition(textObj.position);
+    cachedTexts.push_back(std::move(text));
   }
 }
 
