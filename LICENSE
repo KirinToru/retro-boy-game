@@ -1,21 +1,103 @@
-MIT License
+Journey to the Clouds - Source Available License
 
 Copyright (c) 2026 Kirin'Toru
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+================================================================================
+                              TERMS AND CONDITIONS
+================================================================================
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. DEFINITIONS
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+   "Project" refers to all source code, assets (graphics, sounds, music, fonts),
+   documentation, and any other materials in this repository.
+
+   "Personal Use" means use by an individual for non-commercial purposes,
+   including learning, experimentation, and private projects not distributed
+   to others.
+
+   "Educational Use" means use in educational contexts such as schools,
+   universities, tutorials, and self-learning.
+
+   "Commercial Use" means any use intended for or directed toward commercial
+   advantage or monetary compensation.
+
+--------------------------------------------------------------------------------
+
+2. PERMISSIONS
+
+   You ARE permitted to:
+
+   a) View, study, and learn from the source code and assets
+   b) Use the Project for personal, non-commercial purposes
+   c) Fork and modify the Project for personal use
+   d) Reference the Project in educational materials (with attribution)
+   e) Create private modifications for personal use
+
+--------------------------------------------------------------------------------
+
+3. RESTRICTIONS
+
+   You are NOT permitted to:
+
+   a) Use any part of this Project for commercial purposes without prior
+      written permission from the copyright holder
+   b) Redistribute, publish, or share modified or unmodified versions of
+      this Project without permission
+   c) Use the assets (graphics, sounds, music, fonts) in other projects
+      without permission
+   d) Sell, sublicense, or otherwise transfer rights to this Project
+   e) Remove or alter any copyright notices or attributions
+   f) Claim ownership of any part of this Project
+
+--------------------------------------------------------------------------------
+
+4. ATTRIBUTION
+
+   If you reference this Project in educational content, you must provide
+   appropriate credit, including:
+   - The name of the Project: "Journey to the Clouds"
+   - The copyright holder: Kirin'Toru
+   - A link to the original repository (if applicable)
+
+--------------------------------------------------------------------------------
+
+5. COMMERCIAL LICENSING
+
+   For commercial use, redistribution rights, or any use not covered by
+   this license, please contact the copyright holder to discuss licensing
+   options.
+
+   Contact: Open an issue on GitHub/contact the author via email to maxdom2604@gmail.com
+
+--------------------------------------------------------------------------------
+
+6. DISCLAIMER
+
+   THE PROJECT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   PROJECT.
+
+--------------------------------------------------------------------------------
+
+7. TERMINATION
+
+   This license is automatically terminated if you violate any of its terms.
+   Upon termination, you must destroy all copies of the Project in your
+   possession.
+
+================================================================================
+                                    SUMMARY
+================================================================================
+
+   ✓ View and learn from the code         - YES
+   ✓ Personal/private use                 - YES
+   ✓ Educational reference                - YES (with attribution)
+   ✗ Commercial use                       - NO (requires permission)
+   ✗ Redistribution                       - NO (requires permission)
+   ✗ Using assets in other projects       - NO (requires permission)
+
+================================================================================
