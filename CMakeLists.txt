@@ -2,7 +2,14 @@ cmake_minimum_required(VERSION 4.2.1)
 project(JourneyToTheClouds)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
-set(SFML_DIR "C:/SFML-3.0.2")
+
+if(DEFINED ENV{SFML_DIR})
+    set(SFML_DIR "$ENV{SFML_DIR}")
+else()
+    set(SFML_DIR "C:/SFML-3.0.2")
+endif()
+
+message(STATUS "Using SFML from: ${SFML_DIR}")
 include_directories(${SFML_DIR}/include)
 link_directories(${SFML_DIR}/lib)
 set(SOURCES
